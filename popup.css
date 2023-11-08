@@ -8,6 +8,8 @@ body {
     width: 300px; /* Adjust the width */
     padding: 20px;
     margin: 0 auto;
+    position: relative;
+    border: 3px solid rgb(124, 139, 124);
 }
 
 h1 {
@@ -16,6 +18,14 @@ h1 {
     text-align: center;
     margin-top: 0; /* Set margin-top to 0 to align the text at the top */
     margin-bottom: 20px;
+}
+
+h3 {
+    text-align: center;
+    font-family: Calibri, "Helvetica", san-serif;
+    line-height: 1.5em;
+    border-bottom:1px solid #CCC;
+    padding-bottom:3px;
 }
 
 
@@ -45,15 +55,73 @@ p {
     text-align: center;
 }
 
-button {
+
+
+.vertical-center {
     background-color: #666; /* Dark gray button background */
     color: #fff;
     border: none;
     padding: 10px 20px;
     margin-top: 20px;
+    margin-left: 80px;;
     cursor: pointer;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center; /* Center the button horizontally */
+    align-items: center; /* Center the button vertically */
 }
 
 button:hover {
     background-color: #333; /* Darker gray on hover */
 }
+
+
+
+.check-list {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+  
+  .check-list li {
+    position: relative;
+    list-style-type:circle;
+    margin-left: 3.0rem;
+    margin-bottom: 0.7rem;
+  }
+
+
+  
+  
+  /* Boilerplate stuff */
+  *,
+  *:before,
+  *:after {
+    box-sizing: border-box;
+  }
+  
+  html {
+    -webkit-font-smoothing: antialiased;
+    font-family: "Helvetica Neue", sans-serif;
+    font-size: 62.5%;
+  }
+  
+  body {
+    font-size: 1.6rem; /* 18px */
+    background-color: #efefef;
+    color: #324047
+  }
+  
+
+  
+  section {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    align-items: center;
+  }
+  
+  div {
+    margin: auto;
+  }
+  

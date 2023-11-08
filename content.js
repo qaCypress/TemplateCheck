@@ -17,14 +17,20 @@ document.addEventListener('DOMContentLoaded', function () {
        chrome.runtime.onMessage.addListener((resultText) => {
             result = resultText.resultText
             const extractList = document.getElementById('projectList');
-            extractList.textContent = `Мови проєкту ${result.project}`
+            const otherProblems = document.getElementById('OtherProblems')
+            const titleList = document.getElementById('titleList');
+            const titleList2 = document.getElementById('titleList2');
+
+
+            titleList.textContent = `Мови проєкту ${result.project} `
             console.log(result)
             console.log(extractList)
             
+            
 
-            for (const key in result.mainTxt) {
+            for (const key in result.resultOfComparison) {
                 const li = document.createElement('li');
-                li.textContent = result.mainTxt[key];
+                li.textContent = result.resultOfComparison[key];
 
                 if(li.textContent.includes("БІДА")) {
                     li.style.color = 'red'
@@ -33,6 +39,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 extractList.appendChild(li);
+            }
+
+            
+
+            if(result.imageProblem !== '') {
+                titleList2.textContent = `Інші проблеми`
+                for(let i = 0; i < result.imageProblem.length; i++) {
+                    const li = document.createElement('li');
+                    li.textContent = result.imageProblem[i]
+                    li.style.color = 'red'
+    
+                    otherProblems.appendChild(li)
+                }
+
             }
 
             
@@ -52,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         //console.log(projectLang);
                         //console.log(allLangText);
 
-                        const templateText = getTextFromLica()
+                        const templateText = getTextFromMelica()
                         const exelText = getExelString(allLangText)
                         console.log(templateText)
                         console.log(exelText)
@@ -69,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             return projectName.innerText
                         }
 
-                        function getTextFromLica() {
+                        function getTextFromMelica() {
                             let crmLangElements = {globalText: {}, sideText: {}}
                             let project = getProjectName()
 
@@ -121,53 +141,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             return extendRes;
                         }
 
-                        function compareAllTexts(LicaText, ExelText) {
-
-                            let comparison = {mainTxt: {}, sideTxt: {}, project: getProjectName()}
-                            
-                    
-                            for (const key in LicaText.globalText) {
-                                const licaTextValue = stripHtmlTagsAndSpaces(LicaText.globalText[key]);
-                                const exelTextValue = stripHtmlTagsAndSpaces(ExelText.mainText[key]);
-                                const licaTextSideValue = stripHtmlTagsAndSpaces(LicaText.sideText[key]);
-                                const exelTextSideValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
-                        
-                                if (licaTextValue !== exelTextValue || licaTextSideValue !== exelTextSideValue) {
-                                    comparison.mainTxt[key] = `БІДА на ${key} мові`
-                                    //console.log(`Mismatch in ${key}`);
-                                    //console.log(`LicaText: ${licaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                } else{
-                                    comparison.mainTxt[key] = `На ${key} мові все ок`
-                                    //console.log(`помилок НЕМАЄЄЄ на ${key}`)
-                                    //console.log(`LicaText: ${licaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                }
-                            }
-                            
-                            /*for (const key in LicaText.sideText) {
-                                const licaTextValue = stripHtmlTagsAndSpaces(LicaText.sideText[key]);
-                                const exelTextValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
-                        
-                                if (licaTextValue !== exelTextValue) {
-                                    comparison.sideTxt[key] = `Несостиковка на ${key} мові`
-                                    //console.log(`Mismatch in ${key}`);
-                                    //console.log(`LicaText: ${licaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                }
-                                else{
-                                    comparison.sideTxt[key] = `На ${key} мові все ок`
-                                    //console.log(`помилок НЕМАЄЄЄ на ${key}`)
-                                    //console.log(`LicaText: ${licaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                }
-                            }*/
-
-                            return comparison
-                     
-                        }
-                        
-
                         function stripHtmlTagsAndSpaces(stringToFilter) {
                             // Remove HTML tags
                             const stringWithoutTags = stringToFilter.replace(/<[^>]*>/g, '');
@@ -183,25 +156,99 @@ document.addEventListener('DOMContentLoaded', function () {
                         
                             return sanitizedString;
                         }
-                        
-                        
-                        const string1 = getTextFromLica().globalText.ru
-                        
-                        const string2 = getExelString(allLangText).mainText.ru
-                        
-                        const filteredString1 = stripHtmlTagsAndSpaces(string1);
 
-                        const filteredString2 = stripHtmlTagsAndSpaces(string2);
-
-                        
-                       
-
-                        //console.log(filteredString1.toString())
-                        //console.log(filteredString2.toString())
-                        const result = filteredString1 === filteredString2;
-                        //console.log(result); // This will output "true"
+                        function getProblemsWithImage() {
+                            let project = getProjectName()
+                            let problems = []
+                            for(let i = 0; i < Object.keys(projectLang[project]).length; i++) {
+                                let imageLink = document.getElementById(`img_name_${projectLang[project][i]}`).value
+                                let divButton = document.getElementById(`buttons_${projectLang[project][i]}`)
 
 
+                                if(imageLink.trim() === "") {                 
+                                    problems.push(`Відсутній лінк на картинку на ${projectLang[project][i].toUpperCase()} мові`) 
+                                }
+
+                                if(!(divButton.innerHTML.trim() === "")) {
+                                    let buttonLink = divButton.querySelectorAll('input[type="text"]')[1].value
+
+                                    if(buttonLink === "") {
+                                        problems.push(`Відсутнє посилання під кнопкою на ${projectLang[project][i].toUpperCase()} мові`) 
+                                    } 
+                                               
+                                } else {
+                                    problems.push(`Дів з кнопкою пустий на ${projectLang[project][i].toUpperCase()} мові`) 
+
+                                }
+
+                            }
+                            return problems
+                        }
+
+                        function getAllNumbers() {
+                            
+                        }
+
+
+                        function compareAllTexts(MelicaText, ExelText) {
+
+                            let comparison = {
+                                resultOfComparison: {}, 
+                                project: getProjectName(), 
+                                imageProblem: getProblemsWithImage(), 
+                                textForComparison: {
+                                    MelicaTxt: {mainText: {}, sideText: {}}, 
+                                    exelTxt: {mainText: {}, sideText: {}}
+                                }
+                            }
+                            
+                    
+                            for (const key in MelicaText.globalText) {
+                                const MelicaTextValue = stripHtmlTagsAndSpaces(MelicaText.globalText[key]);
+                                const exelTextValue = stripHtmlTagsAndSpaces(ExelText.mainText[key]);
+                                const MelicaTextSideValue = stripHtmlTagsAndSpaces(MelicaText.sideText[key]);
+                                const exelTextSideValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
+                        
+                                if (MelicaTextValue !== exelTextValue || MelicaTextSideValue !== exelTextSideValue) {
+                                    comparison.resultOfComparison[key] = `БІДА на ${key.toUpperCase()} мові`
+                                    comparison.textForComparison.MelicaTxt.mainText[key] = MelicaTextValue
+                                    comparison.textForComparison.MelicaTxt.sideText[key] = MelicaTextSideValue
+                                    comparison.textForComparison.exelTxt.mainText[key] = exelTextValue
+                                    comparison.textForComparison.exelTxt.sideText[key] = exelTextSideValue
+
+                                } else{
+                                    comparison.resultOfComparison[key] = `На ${key.toUpperCase()} мові все ок`
+                                    comparison.textForComparison.MelicaTxt.mainText[key] = MelicaTextValue
+                                    comparison.textForComparison.MelicaTxt.sideText[key] = MelicaTextSideValue
+                                    comparison.textForComparison.exelTxt.mainText[key] = exelTextValue
+                                    comparison.textForComparison.exelTxt.sideText[key] = exelTextSideValue
+
+                                }
+                            }
+                            
+                            /*for (const key in MelicaText.sideText) {
+                                const MelicaTextValue = stripHtmlTagsAndSpaces(MelicaText.sideText[key]);
+                                const exelTextValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
+                        
+                                if (MelicaTextValue !== exelTextValue) {
+                                    comparison.sideTxt[key] = `Несостиковка на ${key} мові`
+                                    //console.log(`Mismatch in ${key}`);
+                                    //console.log(`MelicaText: ${MelicaTextValue}`);
+                                    //console.log(`ExelText: ${exelTextValue}`);
+                                }
+                                else{
+                                    comparison.sideTxt[key] = `На ${key} мові все ок`
+                                    //console.log(`помилок НЕМАЄЄЄ на ${key}`)
+                                    //console.log(`MelicaText: ${MelicaTextValue}`);
+                                    //console.log(`ExelText: ${exelTextValue}`);
+                                }
+                            }*/
+
+                            return comparison
+                     
+                        }
+
+                
                     },
                     args: [allLangText, projectLang]            
                 });
