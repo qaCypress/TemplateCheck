@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const extractButton = document.getElementById('extractButton');
     
-
-
     extractButton.addEventListener('click', function () {
         console.log('Button clicked')
 
@@ -74,8 +72,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         const templateText = getTextFromMelica()
                         const exelText = getExelString(allLangText)
-                        console.log(templateText)
-                        console.log(exelText)
+                        //console.log(templateText)
+                        //console.log(exelText)
 
 
                         let resultText = compareAllTexts(templateText, exelText)
@@ -186,8 +184,58 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
 
                         function getAllNumbers() {
+                            const templateText = getTextFromMelica()
+                            const exelText = getExelString(allLangText)
+
+                            let numbersComparisonMel = []
+                            let numbersComparisonExel = []
+
+                            function removeNonNumericSymbols(obj) {
+                                for (let key in obj) {
+                                    if (typeof obj[key] === 'string') {
+                                        // Use regular expression to replace non-numeric symbols with an empty string
+                                        obj[key] = obj[key].replace(/[^0-9]/g, '');
+                                    }
+                                }
+                            }
+                            function findAndStoreDifferentElements(obj) {
+                                const keys = Object.keys(obj);
+                                const differentElements = [];
                             
+                                for (let i = 0; i < keys.length; i++) {
+                                    const key1 = keys[i];
+                            
+                                    for (let j = i + 1; j < keys.length; j++) {
+                                        const key2 = keys[j];
+                            
+                                        if (obj[key1] !== obj[key2]) {
+                                            differentElements.push(obj[key1], obj[key2]);
+                                        }
+                                    }
+                                }
+                            
+                                return differentElements;
+                            }
+
+                            removeNonNumericSymbols(templateText.globalText)
+                            removeNonNumericSymbols(exelText.mainText)
+                            removeNonNumericSymbols(templateText.sideText)
+                            removeNonNumericSymbols(exelText.buttonText)
+
+
+                            numbersComparisonMel = findAndStoreDifferentElements(templateText.globalText)
+                            numbersComparisonExel = findAndStoreDifferentElements(exelText.mainText)
+
+
+                            console.log(templateText);
+                            console.log(exelText);
+                                                       
+
+                            console.log()
+
                         }
+
+                        getAllNumbers()
 
 
                         function compareAllTexts(MelicaText, ExelText) {
