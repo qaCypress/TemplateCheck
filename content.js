@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
             for (const key in result.resultOfComparison) {
                 const li = document.createElement('li');
                 li.textContent = result.resultOfComparison[key];
-
+                li.setAttribute('lang-details', key)
                 if(li.textContent.includes("БІДА")) {
                     li.style.color = 'red'
                 } else {
@@ -38,6 +38,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 extractList.appendChild(li);
             }
+
+            //---------------------------------------------------------------------------------------
+            //Можливо колись
+            /*
+            const listItems = document.querySelectorAll('li');
+            const detailsContainer = document.getElementById('details-container');
+            listItems.forEach(item => {
+                item.addEventListener('mouseenter', function () {
+                    const details = this.getAttribute('lang-details');
+                    detailsContainer.innerHTML = `Текст з екселю: ${result.textForComparison.exelTxt.mainText[details]}`;
+                    detailsContainer.style.display = 'block';
+                });
+                item.addEventListener('mouseleave', function () {
+                    detailsContainer.style.display = 'none';
+                });
+            })*/
 
 
             //---------------------------------------------------------------------------------------
@@ -54,6 +70,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             //---------------------------------------------------------------------------------------
             const nmbProblem = result.numbersProblem
+
+            const areAllValuesSameLength = obj => {
+                const values = Object.values(obj);
+                const firstValue = values[0];
+                return values.every(val => val.length === firstValue.length);
+            };
+
+            const areAllValuesSame = obj => {
+                const values = Object.values(obj);
+                const firstValue = values[0];
+                return values.every(val => val === firstValue );
+            };
 
             let checkGlobalTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.globalText)
             let checkSideTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.sideText)
@@ -75,17 +103,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 otherProblems.appendChild(li)
             }
 
-            const areAllValuesSameLength = obj => {
-                const values = Object.values(obj);
-                const firstValue = values[0];
-                return values.every(val => val.length === firstValue.length);
-            };
-
-            const areAllValuesSame = obj => {
-                const values = Object.values(obj);
-                const firstValue = values[0];
-                return values.every(val => val === firstValue );
-            };
        })
     });
 
