@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             titleList.textContent = `Мови проєкту ${result.project} `
             console.log(result)
-            console.log(extractList)
+            //console.log(extractList)
             
             
-
+            //---------------------------------------------------------------------------------------
             for (const key in result.resultOfComparison) {
                 const li = document.createElement('li');
                 li.textContent = result.resultOfComparison[key];
@@ -39,10 +39,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 extractList.appendChild(li);
             }
 
-            
 
+            //---------------------------------------------------------------------------------------
+            titleList2.textContent = `Інші проблеми`
             if(result.imageProblem !== '') {
-                titleList2.textContent = `Інші проблеми`
                 for(let i = 0; i < result.imageProblem.length; i++) {
                     const li = document.createElement('li');
                     li.textContent = result.imageProblem[i]
@@ -50,12 +50,43 @@ document.addEventListener('DOMContentLoaded', function () {
     
                     otherProblems.appendChild(li)
                 }
-
             }
 
-            
+            //---------------------------------------------------------------------------------------
+            const nmbProblem = result.numbersProblem
+
+            let checkGlobalTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.globalText)
+            let checkSideTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.sideText)
+            let checkGlobalTemplateNumVal = areAllValuesSame(nmbProblem.templateText.globalText)
+            let checkSideTemplateNumLVal = areAllValuesSame(nmbProblem.templateText.globalText)
+
+
+            if(!checkGlobalTemplateNumLen || !checkSideTemplateNumLen) {
+                for(const key in nmbProblem.templateText.globalText) {
+                    const li = document.createElement('li');
+                    li.style.color = 'red'
+                    li.textContent = `На ${key.toUpperCase()} мові ${nmbProblem.templateText.globalText[key].length} цифрових символів`
+                    otherProblems.appendChild(li)
+                }
+            } else if (!checkGlobalTemplateNumVal || !checkSideTemplateNumLVal) {
+                const li = document.createElement('li');
+                li.style.color = 'red'
+                li.textContent = `Значення цифр сходяться не всюди(дата, ставка, призові і т. д.)`
+                otherProblems.appendChild(li)
+            }
+
+            const areAllValuesSameLength = obj => {
+                const values = Object.values(obj);
+                const firstValue = values[0];
+                return values.every(val => val.length === firstValue.length);
+            };
+
+            const areAllValuesSame = obj => {
+                const values = Object.values(obj);
+                const firstValue = values[0];
+                return values.every(val => val === firstValue );
+            };
        })
-        
     });
 
 
@@ -77,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
                         let resultText = compareAllTexts(templateText, exelText)
-
                         chrome.runtime.sendMessage({ resultText });
 
                         function getProjectName() {
@@ -187,10 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const templateText = getTextFromMelica()
                             const exelText = getExelString(allLangText)
 
-                            let numbersComparisonMel = []
-                            let numbersComparisonExel = []
-
-                            function removeNonNumericSymbols(obj) {
+                            function removeNonNumericSymbolsAndReturnLength(obj) {
                                 for (let key in obj) {
                                     if (typeof obj[key] === 'string') {
                                         // Use regular expression to replace non-numeric symbols with an empty string
@@ -198,45 +225,15 @@ document.addEventListener('DOMContentLoaded', function () {
                                     }
                                 }
                             }
-                            function findAndStoreDifferentElements(obj) {
-                                const keys = Object.keys(obj);
-                                const differentElements = [];
-                            
-                                for (let i = 0; i < keys.length; i++) {
-                                    const key1 = keys[i];
-                            
-                                    for (let j = i + 1; j < keys.length; j++) {
-                                        const key2 = keys[j];
-                            
-                                        if (obj[key1] !== obj[key2]) {
-                                            differentElements.push(obj[key1], obj[key2]);
-                                        }
-                                    }
-                                }
-                            
-                                return differentElements;
-                            }
 
-                            removeNonNumericSymbols(templateText.globalText)
-                            removeNonNumericSymbols(exelText.mainText)
-                            removeNonNumericSymbols(templateText.sideText)
-                            removeNonNumericSymbols(exelText.buttonText)
+                            removeNonNumericSymbolsAndReturnLength(templateText.globalText)
+                            removeNonNumericSymbolsAndReturnLength(exelText.mainText)
+                            removeNonNumericSymbolsAndReturnLength(templateText.sideText)
+                            removeNonNumericSymbolsAndReturnLength(exelText.buttonText)
 
 
-                            numbersComparisonMel = findAndStoreDifferentElements(templateText.globalText)
-                            numbersComparisonExel = findAndStoreDifferentElements(exelText.mainText)
-
-
-                            console.log(templateText);
-                            console.log(exelText);
-                                                       
-
-                            console.log()
-
+                             return {templateText, exelText}
                         }
-
-                        getAllNumbers()
-
 
                         function compareAllTexts(MelicaText, ExelText) {
 
@@ -247,7 +244,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 textForComparison: {
                                     MelicaTxt: {mainText: {}, sideText: {}}, 
                                     exelTxt: {mainText: {}, sideText: {}}
-                                }
+                                },
+                                numbersProblem: getAllNumbers()
                             }
                             
                     
@@ -274,26 +272,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 }
                             }
                             
-                            /*for (const key in MelicaText.sideText) {
-                                const MelicaTextValue = stripHtmlTagsAndSpaces(MelicaText.sideText[key]);
-                                const exelTextValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
-                        
-                                if (MelicaTextValue !== exelTextValue) {
-                                    comparison.sideTxt[key] = `Несостиковка на ${key} мові`
-                                    //console.log(`Mismatch in ${key}`);
-                                    //console.log(`MelicaText: ${MelicaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                }
-                                else{
-                                    comparison.sideTxt[key] = `На ${key} мові все ок`
-                                    //console.log(`помилок НЕМАЄЄЄ на ${key}`)
-                                    //console.log(`MelicaText: ${MelicaTextValue}`);
-                                    //console.log(`ExelText: ${exelTextValue}`);
-                                }
-                            }*/
 
-                            return comparison
-                     
+                            return comparison          
                         }
 
                 
