@@ -125,3 +125,19 @@ button:hover {
     margin: auto;
   }
   
+  form {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    
+}
+
+label {
+    margin-right: 10px; /* Adjust as needed to add space between the radio buttons */
+    margin-bottom: 20px;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+}
+

@@ -1,16 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     const extractButton = document.getElementById('extractButton');
-    
+
     extractButton.addEventListener('click', function () {
         console.log('Button clicked')
 
-        const textInput = document.getElementById('textInput');
-        const allLangText = textInput.value;
-        const projectLang = getProjectLang()
+        const radioTemplate = getRadiobutton()
+        const allLangText = document.getElementById('textInput').value;
+        const projectLang = getProjectLang(radioTemplate)
         
 
-
-       runScript(allLangText, projectLang);
+       runScript(allLangText, projectLang, radioTemplate);
 
        chrome.runtime.onMessage.addListener((resultText) => {
             result = resultText.resultText
@@ -55,7 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             })*/
 
-
             //---------------------------------------------------------------------------------------
             titleList2.textContent = `Інші проблеми`
             if(result.imageProblem !== '') {
@@ -86,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let checkGlobalTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.globalText)
             let checkSideTemplateNumLen = areAllValuesSameLength(nmbProblem.templateText.sideText)
             let checkGlobalTemplateNumVal = areAllValuesSame(nmbProblem.templateText.globalText)
-            let checkSideTemplateNumLVal = areAllValuesSame(nmbProblem.templateText.globalText)
+            let checkSideTemplateNumLVal = areAllValuesSame(nmbProblem.templateText.sideText)
 
 
             if(!checkGlobalTemplateNumLen || !checkSideTemplateNumLen) {
@@ -97,10 +95,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     otherProblems.appendChild(li)
                 }
             } else if (!checkGlobalTemplateNumVal || !checkSideTemplateNumLVal) {
-                const li = document.createElement('li');
+                const li = document.createElement('li');    
+                let incorectVal = findKeyValuesNotEqualToMajority(nmbProblem.templateText.globalText)
                 li.style.color = 'red'
-                li.textContent = `Значення цифр сходяться не всюди(дата, ставка, призові і т. д.)`
+                li.textContent = `Значення цифр сходяться не всюди(дата, ставка, призові і т. д.) на мовах: ${Object.keys(incorectVal)}`
                 otherProblems.appendChild(li)
+            }
+
+            function findKeyValuesNotEqualToMajority(obj) {
+                // Count occurrences of each value
+                const valueCounts = {};
+                Object.values(obj).forEach(value => {
+                    valueCounts[value] = (valueCounts[value] || 0) + 1;
+                });
+            
+                // Find the majority value(s)
+                const majorityValues = Object.keys(valueCounts).filter(key => valueCounts[key] > 1);
+            
+                // Find key-value pairs where the value is not equal to the majority
+                const keyValuesNotEqualToMajority = Object.entries(obj)
+                    .filter(([key, value]) => !majorityValues.includes(value))
+                    .reduce((acc, [key, value]) => {
+                        acc[key] = value;
+                        return acc;
+                    }, {});
+            
+                return keyValuesNotEqualToMajority;
             }
 
        })
@@ -108,20 +128,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    function runScript(allLangText, projectLang) {
+    function runScript(allLangText, projectLang, radioTemplate) {
         if (allLangText) {
             chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
                 chrome.scripting.executeScript({
                     target: { tabId: tabs[0].id },
-                    function: function (allLangText, projectLang) {                        
+                    function: function (allLangText, projectLang, radioTemplate) {                        
                         //console.log(getProjectName());
                         //console.log(projectLang);
                         //console.log(allLangText);
-
+                        const radioTemp = radioTemplate
                         const templateText = getTextFromMelica()
                         const exelText = getExelString(allLangText)
+                        
                         //console.log(templateText)
                         //console.log(exelText)
+                        console.log(radioTemp)
 
 
                         let resultText = compareAllTexts(templateText, exelText)
@@ -138,23 +160,44 @@ document.addEventListener('DOMContentLoaded', function () {
                             let crmLangElements = {globalText: {}, sideText: {}}
                             let project = getProjectName()
 
-                            for(let i = 0; i < Object.keys(projectLang[project]).length; i++) {
-                                let textTab = document.getElementById(`text_${projectLang[project][i]}`)
-                                let textSide = document.getElementById(`buttons_${projectLang[project][i]}`).querySelector('input[type="text"]');
-
-
-                                crmLangElements.globalText[projectLang[project][i]] = textTab.innerText
-                                crmLangElements.sideText[projectLang[project][i]] = textSide.value
+                            if(radioTemp === "telegramTemplate") {
+                                return processTelegramTemplate()
+                            } else if (radioTemp === "pushTemplate") {
+                                return processPushTemplate()
                             }
+
+                            function processTelegramTemplate() {
+                                for (let i = 0; i < projectLang[project].length; i++) {
+                                    const langKey = projectLang[project][i];
+                                    const textTab = document.getElementById(`text_${langKey}`);
+                                    const textSide = document.getElementById(`buttons_${langKey}`).querySelector('input[type="text"]');
+                                    
+                                    crmLangElements.globalText[langKey] = textTab.innerText;
+                                    crmLangElements.sideText[langKey] = textSide.value;
+                                }
+                                return crmLangElements
+                            }
+
+                            function processPushTemplate() {
+                                for (let i = 0; i < projectLang[project].length; i++) {
+                                    const langKey = projectLang[project][i];
+                                    const tempLang = (langKey === 'ru') ? '' : langKey;
+                                    const tempLang2 = (langKey === 'ru') ? '' : `_${langKey}`;
                             
-                            return crmLangElements
+                                    const textTab = document.getElementById(`message_${tempLang}`).innerHTML;
+                                    const textSide = document.getElementById(`w_title${tempLang2}`).querySelector('input[type="text"]').value;
+                            
+                                    crmLangElements.globalText[langKey] = textTab;
+                                    crmLangElements.sideText[langKey] = textSide;
+                                }
+                                return crmLangElements
+                            }
                         }
 
                         function getExelString(inputString) {
-                            
                             const project = getProjectName()
                             const rows = inputString.trim().split('\n');
-                            const extendRes = {mainText: {}, buttonText: {}}
+                            const extendRes = {mainText: {}, sideText: {}}
 
                             let mTextArr = []
                             let btnTextArr = []
@@ -175,14 +218,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             for(let i = 0; i < Object.keys(projectLang[project]).length; i++) {
                                 extendRes.mainText[projectLang[project][i]] = mText[i]
-                                extendRes.buttonText[projectLang[project][i]] = btnText[i]
+                                extendRes.sideText[projectLang[project][i]] = btnText[i]
 
                                 if(extendRes.mainText[projectLang[project][i]] === undefined) {
                                     extendRes.mainText[projectLang[project][i]] = extendRes.mainText['en']
-                                    extendRes.buttonText[projectLang[project][i]] = extendRes.buttonText['en']
+                                    extendRes.sideText[projectLang[project][i]] = extendRes.sideText['en']
                                 }
                             }
-
+                            console.log(extendRes)
                             return extendRes;
                         }
 
@@ -246,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             removeNonNumericSymbolsAndReturnLength(templateText.globalText)
                             removeNonNumericSymbolsAndReturnLength(exelText.mainText)
                             removeNonNumericSymbolsAndReturnLength(templateText.sideText)
-                            removeNonNumericSymbolsAndReturnLength(exelText.buttonText)
+                            removeNonNumericSymbolsAndReturnLength(exelText.sideText)
 
 
                              return {templateText, exelText}
@@ -270,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const MelicaTextValue = stripHtmlTagsAndSpaces(MelicaText.globalText[key]);
                                 const exelTextValue = stripHtmlTagsAndSpaces(ExelText.mainText[key]);
                                 const MelicaTextSideValue = stripHtmlTagsAndSpaces(MelicaText.sideText[key]);
-                                const exelTextSideValue = stripHtmlTagsAndSpaces(ExelText.buttonText[key]);
+                                const exelTextSideValue = stripHtmlTagsAndSpaces(ExelText.sideText[key]);
                         
                                 if (MelicaTextValue !== exelTextValue || MelicaTextSideValue !== exelTextSideValue) {
                                     comparison.resultOfComparison[key] = `БІДА на ${key.toUpperCase()} мові`
@@ -295,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 
                     },
-                    args: [allLangText, projectLang]            
+                    args: [allLangText, projectLang, radioTemplate]            
                 });
             });
             
@@ -306,22 +349,45 @@ document.addEventListener('DOMContentLoaded', function () {
         
     }
 
-
+    function getRadiobutton() {
+        let radioTemplate;
+        const checkedRadio = document.querySelector('input[type="radio"]:checked');
+        if (checkedRadio) {
+            radioTemplate = checkedRadio.id;
+        }
+        document.getElementById('templateForm').addEventListener('change', (event) => {
+            radioTemplate = event.target.id;  
+        });
+        return radioTemplate
+    }
 });
 
 
-function getProjectLang() {
-    return {
-        Viks: ['ru', 'en', 'uz'],
-        Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'ja', 'kk', 'fr', 'hi', 'bn', 'az', 'fi', 'no'],
-        SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-        LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-        Spinamba: ['ru', 'en', 'tr', 'de', 'pl', 'es', 'pt', 'sv', 'fi', 'no'],
-        Slottyway: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'sv', 'fi', 'no'],
-        AllrightCasino: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
-        Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
-        Magic365: ['ru', 'en', 'pl'],
+function getProjectLang(radioTemplate) {
+    if (radioTemplate === "telegramTemplate") {
+        return {
+            Viks: ['ru', 'en', 'uz'],
+            Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'ja', 'kk', 'fr', 'hi', 'bn', 'az', 'fi', 'no'],
+            SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+            LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+            Spinamba: ['ru', 'en', 'tr', 'de', 'pl', 'es', 'pt', 'sv', 'fi', 'no'],
+            Slottyway: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'sv', 'fi', 'no'],
+            AllrightCasino: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
+            Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
+            Magic365: ['ru', 'en', 'pl'],
+        };
+    } else if (radioTemplate === "pushTemplate") {
+        return {
+            Viks: ['ru', 'en', 'uz'],
+            Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'fr', 'ja', 'kk', 'hi', 'bn', 'az', 'fi', 'no'],
+            SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+            LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+            Spinamba: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'fi', 'no'],
+            Slottyway: ['ru', 'tr', 'en', 'de', 'es', 'pl', 'pt', 'sv', 'fi', 'no'],
+            AllrightCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
+            Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
+            Magic365: ['ru', 'en', 'pl'],
+        }
     }
 }
-
 
