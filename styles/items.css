@@ -1,0 +1,34 @@
+#langPicker {
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 240px; /* Adjust the width as needed */
+  }
+  
+  #itemList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  #itemList li {
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    transition: background-color 0.3s ease;
+    text-align: center; /* Center the text within the buttons */
+  }
+  
+  #itemList li:hover {
+    background-color: #f0f0f0;
+  }
+  
+  #itemList li.selected {
+    background-color: #cce5ff;
+    font-weight: bold;
+    border-color: #4CAF50;
+  }

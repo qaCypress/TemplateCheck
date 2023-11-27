@@ -2,7 +2,8 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="popup.css">
+    <link rel="stylesheet" type="text/css" href="./styles/popup.css">
+    <link rel="stylesheet" type="text/css" href="./styles/items.css">
 </head>
 <body>
     <section>
@@ -37,12 +38,38 @@
         </h3>
         <ul id="OtherProblems" class="check-list">
         </ul>
+        
+        <container id ="langPicker">
+            <h4>Оберіть послідовно мови </h4>
+            <ul id="itemList">
+                <li onclick="toggleItem(this, 'ru')">ru</li>
+                <li onclick="toggleItem(this, 'en')">en</li>
+                <li onclick="toggleItem(this, 'de')">de</li>
+                <li onclick="toggleItem(this, 'pl')">pl</li>
+                <li onclick="toggleItem(this, 'tr')">tr</li>
+                <li onclick="toggleItem(this, 'es')">es</li>
+                <li onclick="toggleItem(this, 'pt')">pt</li>
+                <li onclick="toggleItem(this, 'sv')">sv</li>
+                <li onclick="toggleItem(this, 'fr')">fr</li>
+                <li onclick="toggleItem(this, 'ja')">ja</li>
+                <li onclick="toggleItem(this, 'kk')">kk</li>
+                <li onclick="toggleItem(this, 'hi')">hi</li>
+                <li onclick="toggleItem(this, 'bn')">bn</li>
+                <li onclick="toggleItem(this, 'az')">az</li>
+                <li onclick="toggleItem(this, 'fi')">fi</li>
+                <li onclick="toggleItem(this, 'no')">no</li>
+                <li onclick="toggleItem(this, 'uz')">uz</li>
+                <li onclick="toggleItem(this, 'uk')">uk</li>
+                <!-- Add more items as needed -->
+            </ul>
+        </container>
 
     </div>
     
 </section>
 
-
-<script type="module" src="content.js"></script>
+<script type="module" src="./scripts/languagepick.js"></script>
+<script type="module" src="./scripts/setLanguages.js"></script>
+<script type="module" src="./scripts/content.js"></script>
 </body>
 </html>

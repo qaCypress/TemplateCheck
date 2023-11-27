@@ -1,4 +1,4 @@
-
+import {getProjectLang} from './setLanguages.js'
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const allLangText = document.getElementById('textInput').value;
         const projectLang = getProjectLang(radioTemplate)
         
+        console.log(projectLang)
 
         runScript(allLangText, projectLang, radioTemplate)
         chrome.runtime.onMessage.addListener((resultText) => {
@@ -216,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 
                                 return crmLangElements
                             }
-    
+                            //Функція яка вирізає [USER:%user_name%, 1|1]
                             function processUserNameTitle(titleText) {
                                 
                                 for(let key in titleText) {
@@ -224,16 +225,22 @@ document.addEventListener('DOMContentLoaded', function () {
     
                                     if(titleText[key].includes('[') && titleText[key].includes(']')) {
                                         let lapki = []
+                                        //
+                                        let parametr0 = titleText[key].indexOf('[') - 1 >= 0 ? titleText[key][0] : '';
                                         let parametr1 = titleText[key].slice(titleText[key].indexOf(']') - 1, titleText[key].indexOf(']'))
                                         let parametr2 = titleText[key].slice(titleText[key].indexOf(']') + 1, titleText[key].length)
     
-                                        lapki.push(parametr1 + parametr2)
+                                        lapki.push(parametr0 + parametr1 + parametr2)
                                         
                                         //console.log(lapki.join('').toString())
                                         titleText[key] = lapki.join('').toString()
                                     }
                                 }
                                 return titleText
+                            }
+
+                            function processSmsTemplate() {
+                                
                             }
                         }
     
@@ -438,32 +445,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-
-function getProjectLang(radioTemplate) {
-    if (radioTemplate === "telegramTemplate") {
-        return {
-            Viks: ['ru', 'en', 'uz'],
-            Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'ja', 'kk', 'fr', 'hi', 'bn', 'az', 'fi', 'no'],
-            SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-            LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-            Spinamba: ['ru', 'en', 'tr', 'de', 'pl', 'es', 'pt', 'sv', 'fi', 'no'],
-            Slottyway: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'sv', 'fi', 'no'],
-            AllrightCasino: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
-            Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
-            Magic365: ['ru', 'en', 'pl'],
-        };
-    } else if (radioTemplate === "pushTemplate") {
-        return {
-            Viks: ['ru', 'en', 'uz'],
-            Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'fr', 'ja', 'kk', 'hi', 'bn', 'az', 'fi', 'no'],
-            SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-            LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
-            Spinamba: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'fi', 'no'],
-            Slottyway: ['ru', 'tr', 'en', 'de', 'es', 'pl', 'pt', 'sv', 'fi', 'no'],
-            AllrightCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
-            Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
-            Magic365: ['ru', 'en', 'pl'],
-        }
-    }
-}
 
