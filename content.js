@@ -1,18 +1,18 @@
-import {getProjectLang} from './setLanguages.js'
+import {getProjectLang, getRadiobutton} from './scripts/setLanguages.js'
 
 
 document.addEventListener('DOMContentLoaded', function () {
     const extractButton = document.getElementById('extractButton');
 
     extractButton.addEventListener('click', function () {
-
         const radioTemplate = getRadiobutton()
+        console.log(radioTemplate)
         const allLangText = document.getElementById('textInput').value;
         const projectLang = getProjectLang(radioTemplate)
-        
         console.log(projectLang)
 
         runScript(allLangText, projectLang, radioTemplate)
+
         chrome.runtime.onMessage.addListener((resultText) => {
             let result = resultText.resultText
             const extractList = document.getElementById('projectList');
@@ -39,22 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 extractList.appendChild(li);
             }
-
-            //---------------------------------------------------------------------------------------
-            //Можливо колись
-            /*
-            const listItems = document.querySelectorAll('li');
-            const detailsContainer = document.getElementById('details-container');
-            listItems.forEach(item => {
-                item.addEventListener('mouseenter', function () {
-                    const details = this.getAttribute('lang-details');
-                    detailsContainer.innerHTML = `Текст з екселю: ${result.textForComparison.exelTxt.mainText[details]}`;
-                    detailsContainer.style.display = 'block';
-                });
-                item.addEventListener('mouseleave', function () {
-                    detailsContainer.style.display = 'none';
-                });
-            })*/
 
             //---------------------------------------------------------------------------------------
             titleList2.textContent = `Інші проблеми`
@@ -164,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         const templateText = getTextFromMelica()
                         const exelText = getExelString(allLangText)
                         
-                        //console.log(templateText)
-                        //console.log(exelText)
+                        console.log(templateText)
+                        console.log(exelText)
                         //console.log(radioTemp)
     
     
@@ -187,6 +171,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return processTelegramTemplate()
                             } else if (radioTemp === "pushTemplate") {
                                 return processPushTemplate()
+                            } else if (radioTemp === "smsTemplate") {
+                                return processSmsTemplate()
                             }
     
                             function processTelegramTemplate() {
@@ -240,11 +226,25 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
 
                             function processSmsTemplate() {
-                                
+                                for (let i = 0; i < projectLang[project].length; i++) { 
+                                    const langKey = projectLang[project][i];
+                                    const tempLang = (langKey === 'ru') ? 'sms_text_' : `text_${langKey}`
+                                    let constTab
+
+                                    if (tempLang === 'sms_text_'){
+                                        constTab = document.getElementById(tempLang).innerHTML;
+                                        crmLangElements.globalText[langKey] = constTab;
+                                        crmLangElements.sideText[langKey] = '';
+                                    } else {
+                                        constTab = document.getElementById(tempLang).innerHTML;
+                                        crmLangElements.globalText[langKey] = constTab;
+                                        crmLangElements.sideText[langKey] = '';
+                                    }
+                                }
+                                return crmLangElements
                             }
                         }
-    
-    
+                                                
                         function getExelString(inputString) {
                             const project = getProjectName()
                             const rows = inputString.trim().split('\n');
@@ -256,29 +256,36 @@ document.addEventListener('DOMContentLoaded', function () {
                             for (const row of rows) {
                                 const columns = row.split('\t');
                                 for (let i = 0; i < columns.length; i++) {
-                                    if (i % 2 === 0) {
+                                    if(radioTemp !== "smsTemplate") {
+                                        if (i % 2 === 0) {
+                                            mTextArr.push(columns[i]);
+                                        } else {
+                                            btnTextArr.push(columns[i]);
+                                        }
+                                    } else {      
                                         mTextArr.push(columns[i]);
-                                    } else {
-                                        btnTextArr.push(columns[i]);
+                                        btnTextArr.push('');
                                     }
+
                                 }
                             }
-    
+
+
                             mText = mTextArr.filter(item => item.trim() !== '')
                             btnText = btnTextArr.filter(item => item.trim() !== '')
-    
+  
                             for(let i = 0; i < Object.keys(projectLang[project]).length; i++) {
                                 const langKeys = projectLang[project][i]
     
                                 extendRes.mainText[langKeys] = mText[i]
                                 extendRes.sideText[langKeys] = btnText[i]
     
-                                if(extendRes.mainText[langKeys] === undefined) {
+                                if(extendRes.mainText[langKeys] === undefined ) {
                                     extendRes.mainText[langKeys] = extendRes.mainText['en']
                                     extendRes.sideText[langKeys] = extendRes.sideText['en']
                                 }
                             }
-    
+
                             
     
                             if(radioTemp === "pushTemplate") {
@@ -287,6 +294,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                 
                                 extendRes.mainText = tempMain
                                 extendRes.sideText = tempSide
+                            }
+
+                            if(radioTemp == "smsTemplate") {
+                                let tempSide
+                                for(let i = 0; i < Object.keys(projectLang[project]).length; i++) {
+                                    tempSide = ''
+                                    extendRes.sideText[projectLang[project][i]] = tempSide
+                                }
                             }
     
                             return extendRes;
@@ -432,17 +447,6 @@ document.addEventListener('DOMContentLoaded', function () {
         
     }
 
-    function getRadiobutton() {
-        let radioTemplate;
-        const checkedRadio = document.querySelector('input[type="radio"]:checked');
-        if (checkedRadio) {
-            radioTemplate = checkedRadio.id;
-        }
-        document.getElementById('templateForm').addEventListener('change', (event) => {
-            radioTemplate = event.target.id;  
-        });
-        return radioTemplate
-    }
 });
 
 

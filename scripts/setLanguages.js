@@ -8,20 +8,23 @@ export function getProjectLang(radioTemplate) {
         return idA - idB;
       })
       .map(item => item.textContent);
+    
+    if (selectedItemsSorted.length > 0) {
+      let result = {};
+    
+      for (let project in AllProjectLang()) {
+        let allLanguages = Array.isArray(AllProjectLang()[project])
+          ? AllProjectLang()[project].map(item => item.trim())
+          : typeof AllProjectLang()[project] === 'string'
+            ? AllProjectLang()[project].split(',').map(item => item.trim())
+            : [];
+    
+        
+        result[project] = [...selectedItemsSorted, ...allLanguages.filter(item => !selectedItemsSorted.includes(item))];
+      }
+    
+      return result;
 
-    if (selectedItemsSorted.length > 0 ) {
-        return {
-            Viks: selectedItemsSorted,
-            Slottica: selectedItemsSorted,
-            SuperCat: selectedItemsSorted,
-            LuckyBirdCasino: selectedItemsSorted,
-            Spinamba: selectedItemsSorted,
-            Slottyway: selectedItemsSorted,
-            AllrightCasino: selectedItemsSorted,
-            Spinbounty: selectedItemsSorted,
-            Magic365: selectedItemsSorted,
-            Spinado: selectedItemsSorted,
-        }
     } else if (radioTemplate === "telegramTemplate") {
         return {
             Viks: ['ru', 'en', 'uz'],
@@ -64,3 +67,29 @@ export function getProjectLang(radioTemplate) {
     }
 }
 
+export function getRadiobutton() {
+    let radioTemplate;
+    const checkedRadio = document.querySelector('input[type="radio"]:checked');
+    if (checkedRadio) {
+        radioTemplate = checkedRadio.id;
+    }
+    document.getElementById('templateForm').addEventListener('change', (event) => {
+        radioTemplate = event.target.id;  
+    });
+    return radioTemplate
+}
+
+function AllProjectLang() {
+    return {
+        Viks: ['ru', 'en', 'uz'],
+        Slottica: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'sv', 'ja', 'kk', 'fr', 'hi', 'bn', 'az', 'fi', 'no'],
+        SuperCat: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+        LuckyBirdCasino: ['ru', 'en', 'de', 'pl', 'tr', 'es', 'pt', 'fi', 'no'],
+        Spinamba: ['ru', 'en', 'tr', 'de', 'pl', 'es', 'pt', 'sv', 'fi', 'no'],
+        Slottyway: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'sv', 'fi', 'no'],
+        AllrightCasino: ['ru', 'en', 'tr', 'pl', 'de', 'es', 'pt', 'ja', 'sv', 'fr', 'fi', 'no'],
+        Spinbounty: ['ru', 'en', 'de', 'pl', 'fr'],
+        Magic365: ['ru', 'en', 'pl'],
+        Spinado: ['ru', 'en', 'pl', 'es', 'pt', 'kk'],
+    };
+}
