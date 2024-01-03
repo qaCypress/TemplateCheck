@@ -157,11 +157,31 @@ document.addEventListener('DOMContentLoaded', function () {
                         chrome.runtime.sendMessage({ resultText });
     
                         function getProjectName() {
-                            let dropDownElement = this.document.querySelector('.chosen-single')
-                            let projectName = dropDownElement.querySelector('span')
-                        
-                            return projectName.innerText
-                        }
+                          let dropDownElement = this.document.querySelector('.chosen-single');
+                      
+                          // Check if dropDownElement or the span element is not found
+                          if (!dropDownElement) {
+                              // Search for the chosen element in the HTML
+                              let selectedOption = document.querySelector('#brand_id option:checked');
+                      
+                              // Return the text content of the selected option or a default value if not found
+                              return selectedOption ? selectedOption.textContent : 'DefaultProjectName';
+                          }
+                      
+                          let projectNameElement = dropDownElement.querySelector('span');
+                      
+                          // Check if projectNameElement is not found
+                          if (!projectNameElement || projectNameElement.innerText === undefined) {
+                              // Search for the chosen element in the HTML
+                              let selectedOption = document.querySelector('#brand_id option:checked');
+                      
+                              // Return the text content of the selected option or a default value if not found
+                              return selectedOption ? selectedOption.textContent : 'DefaultProjectName';
+                          }
+                      
+                          // Return the text content of the projectNameElement
+                          return projectNameElement.innerText;
+                      }
     
                         function getTextFromMelica() {
                             let crmLangElements = {globalText: {}, sideText: {}}
